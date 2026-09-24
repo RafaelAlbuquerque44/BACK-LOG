@@ -1,0 +1,4 @@
+node_modules/
+.env
+vendas.db
+.DS_Store
