@@ -21,6 +21,13 @@ function NovaVenda() {
     obs_consultora: '',
     status_cliente: 'Pendente'
   });
+  const [opcoes, setOpcoes] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://localhost:3001/api/opcoes')
+      .then(res => setOpcoes(res.data.data || []))
+      .catch(err => console.error(err));
+  }, []);
 
   const maskCNPJ = (value) => {
     return value
@@ -94,6 +101,8 @@ function NovaVenda() {
             <div className="form-group">
               <label>Seguimento da Empresa</label>
               <select className="form-control" name="seguimento_empresa" value={formData.seguimento_empresa} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'segmento').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
                 <option value="PME">PME (Pequenas e Médias)</option>
                 <option value="Grande Porte">Grande Porte</option>
                 <option value="Governo">Governo</option>
@@ -129,8 +138,11 @@ function NovaVenda() {
           </h4>
           <div className="form-grid" style={{ marginBottom: '2rem' }}>
             <div className="form-group">
-              <label>Produto (Ex: VVN 5G)</label>
-              <input required type="text" className="form-control" name="produto" value={formData.produto} onChange={handleChange} />
+              <label>Produto</label>
+              <select required className="form-control" name="produto" value={formData.produto} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'produto').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label>SDR</label>
@@ -138,18 +150,20 @@ function NovaVenda() {
             </div>
             <div className="form-group">
               <label>Consultora</label>
-              <input type="text" className="form-control" name="consultora" value={formData.consultora} onChange={handleChange} />
+              <input type="text" className="form-control" name="consultora" value={formData.consultora} onChange={handleChange} placeholder="Deixe em branco para o Backlog" />
             </div>
             <div className="form-group">
               <label>Origem do Cliente</label>
-              <input type="text" className="form-control" name="origem_cliente" value={formData.origem_cliente} onChange={handleChange} />
+              <select className="form-control" name="origem_cliente" value={formData.origem_cliente} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'origem').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label>Status do Cliente</label>
               <select className="form-control" name="status_cliente" value={formData.status_cliente} onChange={handleChange}>
-                <option value="Ativo">Ativo</option>
                 <option value="Pendente">Pendente</option>
-                <option value="Inativo">Inativo</option>
+                {opcoes.filter(o => o.categoria === 'status').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
               </select>
             </div>
           </div>

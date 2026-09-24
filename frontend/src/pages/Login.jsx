@@ -16,7 +16,7 @@ function Login({ onLogin }) {
     axios.post('http://localhost:3001/api/login', credentials)
       .then(res => {
         if (res.data.success) {
-          onLogin(true);
+          onLogin(res.data.user);
         }
       })
       .catch(err => {

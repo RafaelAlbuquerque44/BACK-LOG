@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ReceiptText, Users, Settings } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Vendas from './pages/Vendas';
 import NovaVenda from './pages/NovaVenda';
@@ -9,7 +8,8 @@ import Clientes from './pages/Clientes';
 import Configuracoes from './pages/Configuracoes';
 import Login from './pages/Login';
 import Kanban from './pages/Kanban';
-import { Columns } from 'lucide-react';
+import ConsultoraPainel from './pages/ConsultoraPainel';
+import { Columns, LayoutDashboard, ReceiptText, Users, Settings } from 'lucide-react';
 
 function Sidebar() {
   const location = useLocation();
@@ -46,25 +46,33 @@ function Sidebar() {
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
-  if (!isAuthenticated) {
-    return <Login onLogin={setIsAuthenticated} />;
+  if (!user) {
+    return <Login onLogin={setUser} />;
   }
+
+  const isAdmin = user.role === 'admin';
 
   return (
     <BrowserRouter>
       <div className="app-container">
-        <Sidebar />
-        <main className="main-content">
+        {isAdmin ? <Sidebar /> : null}
+        <main className="main-content" style={!isAdmin ? { padding: '1rem' } : {}}>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/vendas" element={<Vendas />} />
-            <Route path="/vendas/nova" element={<NovaVenda />} />
-            <Route path="/vendas/editar/:id" element={<EditarVenda />} />
-            <Route path="/kanban" element={<Kanban />} />
-            <Route path="/clientes" element={<Clientes />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
+            {isAdmin ? (
+              <>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/vendas" element={<Vendas />} />
+                <Route path="/vendas/nova" element={<NovaVenda />} />
+                <Route path="/vendas/editar/:id" element={<EditarVenda />} />
+                <Route path="/kanban" element={<Kanban />} />
+                <Route path="/clientes" element={<Clientes />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
+              </>
+            ) : (
+              <Route path="*" element={<ConsultoraPainel user={user} onLogout={() => setUser(null)} />} />
+            )}
           </Routes>
         </main>
       </div>

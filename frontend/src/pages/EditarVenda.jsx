@@ -7,6 +7,8 @@ function EditarVenda() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [historico, setHistorico] = useState([]);
+  const [opcoes, setOpcoes] = useState([]);
   const [formData, setFormData] = useState({
     dados_envios: '',
     sdr: '',
@@ -36,6 +38,14 @@ function EditarVenda() {
         console.error(err);
         setLoading(false);
       });
+
+    axios.get(`http://localhost:3001/api/vendas/${id}/historico`)
+      .then(res => setHistorico(res.data.data || []))
+      .catch(err => console.error(err));
+
+    axios.get('http://localhost:3001/api/opcoes')
+      .then(res => setOpcoes(res.data.data || []))
+      .catch(err => console.error(err));
   }, [id]);
 
   const maskCNPJ = (value) => {
@@ -69,24 +79,24 @@ function EditarVenda() {
   const handleSubmit = (e) => {
     e.preventDefault();
     axios.put(`http://localhost:3001/api/vendas/${id}`, formData)
-      .then(() => {
+      .then(res => {
         alert('Venda atualizada com sucesso!');
         navigate('/vendas');
       })
       .catch(err => {
         console.error(err);
-        alert('Erro ao atualizar a venda.');
+        alert('Erro ao atualizar venda');
       });
   };
 
-  if (loading) return <div className="animate-fade-in"><div className="empty-state">Carregando dados...</div></div>;
+  if (loading) return <div className="animate-fade-in" style={{ padding: '2rem' }}>Carregando...</div>;
 
   return (
     <div className="animate-fade-in">
       <div className="header">
         <div>
-          <h2>Editar Venda</h2>
-          <p style={{ color: 'var(--text-muted)' }}>Atualize os dados desta venda</p>
+          <h2>Editar Cliente / Venda</h2>
+          <p style={{ color: 'var(--text-muted)' }}>Atualize os dados e o histórico do cliente</p>
         </div>
         <Link to="/vendas" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
           <ArrowLeft size={18} />
@@ -111,7 +121,9 @@ function EditarVenda() {
             </div>
             <div className="form-group">
               <label>Seguimento da Empresa</label>
-              <select className="form-control" name="seguimento_empresa" value={formData.seguimento_empresa || 'PME'} onChange={handleChange}>
+              <select className="form-control" name="seguimento_empresa" value={formData.seguimento_empresa || ''} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'segmento').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
                 <option value="PME">PME (Pequenas e Médias)</option>
                 <option value="Grande Porte">Grande Porte</option>
                 <option value="Governo">Governo</option>
@@ -147,8 +159,11 @@ function EditarVenda() {
           </h4>
           <div className="form-grid" style={{ marginBottom: '2rem' }}>
             <div className="form-group">
-              <label>Produto (Ex: VVN 5G)</label>
-              <input required type="text" className="form-control" name="produto" value={formData.produto || ''} onChange={handleChange} />
+              <label>Produto</label>
+              <select required className="form-control" name="produto" value={formData.produto || ''} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'produto').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label>SDR</label>
@@ -160,39 +175,54 @@ function EditarVenda() {
             </div>
             <div className="form-group">
               <label>Origem do Cliente</label>
-              <input type="text" className="form-control" name="origem_cliente" value={formData.origem_cliente || ''} onChange={handleChange} />
+              <select className="form-control" name="origem_cliente" value={formData.origem_cliente || ''} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'origem').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label>Status do Cliente</label>
-              <select className="form-control" name="status_cliente" value={formData.status_cliente || 'Pendente'} onChange={handleChange}>
-                <option value="Ativo">Ativo</option>
+              <select className="form-control" name="status_cliente" value={formData.status_cliente || ''} onChange={handleChange}>
                 <option value="Pendente">Pendente</option>
-                <option value="Inativo">Inativo</option>
+                {opcoes.filter(o => o.categoria === 'status').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
               </select>
             </div>
           </div>
 
           <h4 style={{ marginBottom: '1.5rem', color: 'var(--primary)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-            Outras Informações
+            Histórico de Atualizações (Tracking)
           </h4>
-          <div className="form-grid" style={{ marginBottom: '2rem' }}>
-            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label>Dados de Envios</label>
-              <textarea className="form-control" name="dados_envios" value={formData.dados_envios || ''} onChange={handleChange} rows={3}></textarea>
-            </div>
-            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-              <label>OBS Consultora</label>
-              <textarea className="form-control" name="obs_consultora" value={formData.obs_consultora || ''} onChange={handleChange} rows={3}></textarea>
-            </div>
+          <div style={{ marginBottom: '2rem', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px' }}>
+            {historico.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>Nenhum histórico registrado para este cliente ainda.</p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {historico.map((h, i) => (
+                  <li key={i} style={{ borderLeft: '2px solid var(--primary)', paddingLeft: '1rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{new Date(h.data).toLocaleString('pt-BR')}</div>
+                    <div>
+                      <strong>{h.consultora}</strong> alterou de <span style={{ color: 'var(--warning)' }}>{h.status_anterior}</span> para <span style={{ color: 'var(--primary)' }}>{h.status_novo}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
+          <div className="form-group" style={{ marginBottom: '2rem' }}>
+            <label>Observações Adicionais (Backlog)</label>
+            <textarea className="form-control" name="obs_consultora" rows="4" value={formData.obs_consultora || ''} onChange={handleChange}></textarea>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <button type="button" onClick={() => navigate('/vendas')} className="btn btn-secondary">
+              Cancelar
+            </button>
             <button type="submit" className="btn btn-primary">
               <Save size={18} />
               Salvar Alterações
             </button>
           </div>
-
         </form>
       </div>
     </div>

@@ -14,40 +14,86 @@ const db = new sqlite3.Database('./vendas.db', (err) => {
     console.error('Error opening database', err.message);
   } else {
     console.log('Connected to the SQLite database.');
-    db.run(`
-      CREATE TABLE IF NOT EXISTS vendas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        dados_envios TEXT,
-        sdr TEXT,
-        cnpj TEXT,
-        razao_social TEXT,
-        origem_cliente TEXT,
-        seguimento_empresa TEXT,
-        produto TEXT,
-        consultora TEXT,
-        nome_gestor TEXT,
-        email_gestor TEXT,
-        telefone_gestor TEXT,
-        endereco_empresa TEXT,
-        obs_consultora TEXT,
-        status_cliente TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE,
-        password TEXT,
-        role TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `, () => {
-      // Create default admin if not exists
-      db.get('SELECT * FROM users WHERE username = ?', ['admin'], (err, row) => {
-        if (!row) {
-          db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['admin', 'admin123', 'admin']);
-        }
+    
+    db.serialize(() => {
+      // Vendas Table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS vendas (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          dados_envios TEXT,
+          sdr TEXT,
+          cnpj TEXT,
+          razao_social TEXT,
+          origem_cliente TEXT,
+          seguimento_empresa TEXT,
+          produto TEXT,
+          consultora TEXT,
+          nome_gestor TEXT,
+          email_gestor TEXT,
+          telefone_gestor TEXT,
+          endereco_empresa TEXT,
+          obs_consultora TEXT,
+          status_cliente TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Users Table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE,
+          password TEXT,
+          role TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `, () => {
+        db.get('SELECT * FROM users WHERE username = ?', ['admin'], (err, row) => {
+          if (!row) {
+            db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['admin', 'admin123', 'admin']);
+          }
+        });
+      });
+
+      // History Table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS vendas_historico (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          venda_id INTEGER,
+          consultora TEXT,
+          status_anterior TEXT,
+          status_novo TEXT,
+          data DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Dynamic Options Table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS opcoes_sistema (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          categoria TEXT,
+          valor TEXT
+        )
+      `, () => {
+        // Populate default options if empty
+        db.get('SELECT count(*) as count FROM opcoes_sistema', (err, row) => {
+          if (row && row.count === 0) {
+            const defaults = [
+              ['status', 'Ativo'],
+              ['status', 'Em negociação'],
+              ['status', 'Sem contato'],
+              ['status', 'Sem interesse'],
+              ['produto', 'VVN 5G'],
+              ['produto', 'Banda Larga'],
+              ['segmento', 'PME'],
+              ['segmento', 'Grande Porte'],
+              ['segmento', 'Governo']
+            ];
+            const stmt = db.prepare('INSERT INTO opcoes_sistema (categoria, valor) VALUES (?, ?)');
+            defaults.forEach(d => stmt.run(d));
+            stmt.finalize();
+          }
+        });
       });
     });
   }
@@ -65,15 +111,105 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// Update Sale Status (Quick update for Kanban)
+// Get options
+app.get('/api/opcoes', (req, res) => {
+  db.all('SELECT * FROM opcoes_sistema', [], (err, rows) => {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ data: rows });
+  });
+});
+
+app.post('/api/opcoes', (req, res) => {
+  const { categoria, valor } = req.body;
+  db.run('INSERT INTO opcoes_sistema (categoria, valor) VALUES (?, ?)', [categoria, valor], function(err) {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ id: this.lastID, categoria, valor });
+  });
+});
+
+app.delete('/api/opcoes/:id', (req, res) => {
+  db.run('DELETE FROM opcoes_sistema WHERE id = ?', [req.params.id], function(err) {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// Update Sale Status (Quick update for Kanban & Consultoras)
 app.patch('/api/vendas/:id/status', (req, res) => {
-  const { status_cliente } = req.body;
-  db.run('UPDATE vendas SET status_cliente = ? WHERE id = ?', [status_cliente, req.params.id], function(err) {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
+  const { status_cliente, consultora } = req.body;
+  const vendaId = req.params.id;
+
+  // First get the current status to save in history
+  db.get('SELECT status_cliente, consultora FROM vendas WHERE id = ?', [vendaId], (err, row) => {
+    if (err || !row) return res.status(400).json({ error: 'Venda não encontrada' });
+    
+    const statusAnterior = row.status_cliente;
+    const nomeConsultora = consultora || row.consultora || 'Desconhecida';
+    
+    // Negative status logic (Bounce back to backlog)
+    const negativeStatuses = ['Sem contato', 'Sem interesse', 'Não tem interesse', 'Inativo'];
+    const isNegative = negativeStatuses.includes(status_cliente);
+    
+    let novoStatus = status_cliente;
+    let novaConsultora = row.consultora;
+    
+    if (isNegative) {
+      novoStatus = 'Pendente'; // Reset to pendente for the backlog
+      novaConsultora = ''; // Remove from consultora
     }
-    res.json({ message: 'Status atualizado com sucesso', changes: this.changes });
+
+    db.run('UPDATE vendas SET status_cliente = ?, consultora = ? WHERE id = ?', [novoStatus, novaConsultora, vendaId], function(err) {
+      if (err) return res.status(400).json({ error: err.message });
+      
+      // Save history
+      db.run('INSERT INTO vendas_historico (venda_id, consultora, status_anterior, status_novo) VALUES (?, ?, ?, ?)', 
+        [vendaId, nomeConsultora, statusAnterior, status_cliente] // save original intent in history
+      );
+
+      res.json({ message: 'Status atualizado com sucesso', changes: this.changes, bounced: isNegative });
+    });
+  });
+});
+
+// Get all sales (with role-based filtering)
+app.get('/api/vendas', (req, res) => {
+  const { consultora } = req.query; // If provided, means it's a consultora view
+  
+  if (consultora) {
+    // Consultora logic: All her non-pendent + max 3 pendentes
+    const sql = `
+      SELECT * FROM vendas 
+      WHERE consultora = ? AND status_cliente != 'Pendente'
+      UNION ALL
+      SELECT * FROM vendas 
+      WHERE consultora = ? AND status_cliente = 'Pendente'
+      ORDER BY created_at ASC
+      LIMIT 3
+    `;
+    // Wait, UNION ALL limit applies to the whole result. We want ALL active + 3 pendentes.
+    // Let's just fetch all her assigned, and slice the pendentes in memory to be safe and easy.
+    db.all('SELECT * FROM vendas WHERE consultora = ? ORDER BY created_at ASC', [consultora], (err, rows) => {
+      if (err) return res.status(400).json({ error: err.message });
+      
+      const nonPendent = rows.filter(r => r.status_cliente !== 'Pendente');
+      const pendent = rows.filter(r => r.status_cliente === 'Pendente').slice(0, 3);
+      
+      res.json({ data: [...nonPendent, ...pendent] });
+    });
+  } else {
+    // Admin view
+    db.all('SELECT * FROM vendas ORDER BY created_at DESC', [], (err, rows) => {
+      if (err) return res.status(400).json({ error: err.message });
+      res.json({ data: rows });
+    });
+  }
+});
+
+// Get sale history
+app.get('/api/vendas/:id/historico', (req, res) => {
+  db.all('SELECT * FROM vendas_historico WHERE venda_id = ? ORDER BY data DESC', [req.params.id], (err, rows) => {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ data: rows });
   });
 });
 
@@ -113,20 +249,7 @@ app.post('/api/vendas', (req, res) => {
   });
 });
 
-// Get all sales
-app.get('/api/vendas', (req, res) => {
-  const sql = 'SELECT * FROM vendas ORDER BY created_at DESC';
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      res.status(400).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: 'success',
-      data: rows
-    });
-  });
-});
+
 
 // Get a single sale
 app.get('/api/vendas/:id', (req, res) => {
