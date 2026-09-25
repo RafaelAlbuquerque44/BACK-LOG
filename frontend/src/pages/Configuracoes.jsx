@@ -61,7 +61,8 @@ function Configuracoes() {
                 <option value="produto">Produto</option>
                 <option value="status">Status do Cliente</option>
                 <option value="segmento">Segmento (PME, etc)</option>
-                <option value="origem">Origem do Cliente</option>
+                <option value="sdr">SDR</option>
+                <option value="consultora">Consultora</option>
               </select>
             </div>
             <div className="form-group" style={{ flex: 2 }}>
@@ -80,7 +81,7 @@ function Configuracoes() {
           </form>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-            {['produto', 'status', 'segmento', 'origem'].map(cat => (
+            {['produto', 'status', 'segmento', 'sdr', 'consultora'].map(cat => (
               <div key={cat} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px' }}>
                 <h4 style={{ textTransform: 'capitalize', marginBottom: '1rem', color: 'var(--primary)' }}>{cat}s</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>

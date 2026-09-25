@@ -167,18 +167,21 @@ function EditarVenda() {
             </div>
             <div className="form-group">
               <label>SDR</label>
-              <input type="text" className="form-control" name="sdr" value={formData.sdr || ''} onChange={handleChange} />
+              <select className="form-control" name="sdr" value={formData.sdr || ''} onChange={handleChange}>
+                <option value="">Selecione...</option>
+                {opcoes.filter(o => o.categoria === 'sdr').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label>Consultora</label>
-              <input type="text" className="form-control" name="consultora" value={formData.consultora || ''} onChange={handleChange} />
+              <select className="form-control" name="consultora" value={formData.consultora || ''} onChange={handleChange}>
+                <option value="">Backlog (Sem Consultora)</option>
+                {opcoes.filter(o => o.categoria === 'consultora').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
+              </select>
             </div>
             <div className="form-group">
               <label>Origem do Cliente</label>
-              <select className="form-control" name="origem_cliente" value={formData.origem_cliente || ''} onChange={handleChange}>
-                <option value="">Selecione...</option>
-                {opcoes.filter(o => o.categoria === 'origem').map(o => <option key={o.id} value={o.valor}>{o.valor}</option>)}
-              </select>
+              <input type="text" className="form-control" name="origem_cliente" value={formData.origem_cliente || ''} onChange={handleChange} />
             </div>
             <div className="form-group">
               <label>Status do Cliente</label>
@@ -209,8 +212,13 @@ function EditarVenda() {
             )}
           </div>
 
+          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+            <label>OBS SDR</label>
+            <textarea className="form-control" name="dados_envios" rows="3" value={formData.dados_envios || ''} onChange={handleChange}></textarea>
+          </div>
+
           <div className="form-group" style={{ marginBottom: '2rem' }}>
-            <label>Observações Adicionais (Backlog)</label>
+            <label>Observações Adicionais (Consultora/Backlog)</label>
             <textarea className="form-control" name="obs_consultora" rows="4" value={formData.obs_consultora || ''} onChange={handleChange}></textarea>
           </div>
 
