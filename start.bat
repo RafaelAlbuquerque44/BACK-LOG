@@ -1,8 +1,24 @@
 @echo off
-echo Iniciando o Servidor Backend...
-start cmd /k "cd backend && node index.js"
+title Sistema Grupo Sempre
+color 0A
 
-echo Iniciando o Frontend React...
-start cmd /k "cd frontend && npm run dev"
+echo ==============================================
+echo   INICIANDO O SISTEMA - GRUPO SEMPRE
+echo ==============================================
+echo.
+echo [1/2] Iniciando Servidor Backend (API)...
+cd backend
+start /B node index.js
 
-echo O sistema estara disponivel em breve!
+timeout /t 2 /nobreak > NUL
+
+echo [2/2] Iniciando Painel Web...
+cd ../frontend
+echo.
+echo ==============================================
+echo SISTEMA ONLINE!
+echo Deixe esta janela aberta.
+echo Outros computadores na rede podem acessar pelo seu IP Local (ex: http://192.168.X.X:5173)
+echo ==============================================
+echo.
+npm run dev

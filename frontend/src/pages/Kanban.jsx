@@ -7,7 +7,7 @@ function Kanban() {
   const [loading, setLoading] = useState(true);
 
   const fetchVendas = () => {
-    axios.get('http://localhost:3001/api/vendas')
+    axios.get('/api/vendas')
       .then(res => {
         setVendas(res.data.data || []);
         setLoading(false);
@@ -34,7 +34,7 @@ function Kanban() {
       setVendas(prev => prev.map(v => v.id === parseInt(id) ? { ...v, status_cliente: newStatus } : v));
       
       // Backend update
-      axios.patch(`http://localhost:3001/api/vendas/${id}/status`, { status_cliente: newStatus })
+      axios.patch(`/api/vendas/${id}/status`, { status_cliente: newStatus })
         .catch(err => {
           console.error(err);
           fetchVendas(); // revert on error

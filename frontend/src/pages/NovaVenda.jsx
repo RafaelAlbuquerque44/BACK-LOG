@@ -24,7 +24,7 @@ function NovaVenda() {
   const [opcoes, setOpcoes] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/opcoes')
+    axios.get('/api/opcoes')
       .then(res => setOpcoes(res.data.data || []))
       .catch(err => console.error(err));
   }, []);
@@ -59,7 +59,7 @@ function NovaVenda() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://localhost:3001/api/vendas', formData)
+    axios.post('/api/vendas', formData)
       .then(() => {
         alert('Venda registrada com sucesso!');
         navigate('/vendas');

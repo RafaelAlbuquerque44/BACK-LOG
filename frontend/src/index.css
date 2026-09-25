@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary: #10b981;
-  --primary-hover: #059669;
+  --primary: #660099;
+  --primary-hover: #4c0073;
   --bg-dark: #0f172a;
   --bg-card: rgba(30, 41, 59, 0.7);
   --text-main: #f8fafc;
@@ -13,7 +13,7 @@
   --danger: #ef4444;
   --body-bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
   --sidebar-bg: rgba(15, 23, 42, 0.8);
-  --nav-hover-bg: rgba(16, 185, 129, 0.1);
+  --nav-hover-bg: rgba(102, 0, 153, 0.2);
 }
 
 body.light-mode {
@@ -21,10 +21,10 @@ body.light-mode {
   --bg-card: #ffffff;
   --text-main: #0f172a;
   --text-muted: #64748b;
-  --border-color: rgba(16, 185, 129, 0.2);
+  --border-color: rgba(102, 0, 153, 0.15);
   --body-bg: #f8fafc;
   --sidebar-bg: #ffffff;
-  --nav-hover-bg: rgba(16, 185, 129, 0.15);
+  --nav-hover-bg: rgba(102, 0, 153, 0.1);
 }
 
 * {
@@ -71,7 +71,7 @@ body {
 .sidebar h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(to right, #34d399, #059669);
+  background: linear-gradient(to right, #9d4edd, #660099);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -137,7 +137,7 @@ body {
 .btn-primary {
   background: var(--primary);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+  box-shadow: 0 4px 14px 0 rgba(102, 0, 153, 0.39);
 }
 
 .btn-primary:hover {
@@ -186,7 +186,7 @@ body {
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 2px rgba(102, 0, 153, 0.2);
 }
 
 select.form-control {
@@ -274,7 +274,7 @@ tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(102, 0, 153, 0.1);
   color: var(--primary);
 }
 

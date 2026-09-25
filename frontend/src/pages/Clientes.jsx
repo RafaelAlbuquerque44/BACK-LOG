@@ -8,7 +8,7 @@ function Clientes() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/vendas')
+    axios.get('/api/vendas')
       .then(res => {
         // Extrair clientes únicos baseados no CNPJ ou Razão Social
         const vendas = res.data.data || [];

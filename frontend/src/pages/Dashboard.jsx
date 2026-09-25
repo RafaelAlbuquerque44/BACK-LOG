@@ -13,7 +13,7 @@ function Dashboard() {
   const [chartData, setChartData] = useState({ status: [], products: [] });
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/vendas')
+    axios.get('/api/vendas')
       .then(res => {
         const vendas = res.data.data || [];
         

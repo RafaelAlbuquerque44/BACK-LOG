@@ -11,8 +11,8 @@ function Relatorios() {
   useEffect(() => {
     // Busca dados e opções
     Promise.all([
-      axios.get('http://localhost:3001/api/vendas'),
-      axios.get('http://localhost:3001/api/opcoes')
+      axios.get('/api/vendas'),
+      axios.get('/api/opcoes')
     ]).then(([resVendas, resOpcoes]) => {
       setVendas(resVendas.data.data || []);
       

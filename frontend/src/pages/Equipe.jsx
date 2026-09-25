@@ -8,7 +8,7 @@ function Equipe() {
   const [loading, setLoading] = useState(true);
 
   const fetchUsers = () => {
-    axios.get('http://localhost:3001/api/users')
+    axios.get('/api/users')
       .then(res => {
         setUsers(res.data.data || []);
         setLoading(false);
@@ -27,7 +27,7 @@ function Equipe() {
     e.preventDefault();
     if (formData.id) {
       // Edit
-      axios.put(`http://localhost:3001/api/users/${formData.id}`, formData)
+      axios.put(`/api/users/${formData.id}`, formData)
         .then(() => {
           setFormData({ id: null, username: '', password: '', role: 'consultora' });
           fetchUsers();
@@ -35,7 +35,7 @@ function Equipe() {
         .catch(err => alert('Erro ao atualizar usuário'));
     } else {
       // Create
-      axios.post('http://localhost:3001/api/users', formData)
+      axios.post('/api/users', formData)
         .then(() => {
           setFormData({ id: null, username: '', password: '', role: 'consultora' });
           fetchUsers();
@@ -46,7 +46,7 @@ function Equipe() {
 
   const handleDelete = (id) => {
     if (!window.confirm('Tem certeza que deseja excluir este usuário?')) return;
-    axios.delete(`http://localhost:3001/api/users/${id}`)
+    axios.delete(`/api/users/${id}`)
       .then(() => fetchUsers())
       .catch(err => alert('Erro ao excluir usuário'));
   };

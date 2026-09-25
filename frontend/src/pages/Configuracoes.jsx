@@ -1,37 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Settings, Shield, Bell, User, Plus, Trash2 } from 'lucide-react';
+import { Settings, Shield, Bell, User, Plus, Trash2, Key } from 'lucide-react';
 
 function Configuracoes() {
   const [opcoes, setOpcoes] = useState([]);
   const [novaOpcao, setNovaOpcao] = useState({ categoria: 'produto', valor: '' });
+  
+  // States for user management
+  const [users, setUsers] = useState([]);
+  const [novoUser, setNovoUser] = useState({ username: '', password: '', role: 'consultora' });
 
-  const fetchOpcoes = () => {
-    axios.get('http://localhost:3001/api/opcoes')
+  const fetchData = () => {
+    // Fetch options
+    axios.get('/api/opcoes')
       .then(res => setOpcoes(res.data.data || []))
+      .catch(err => console.error(err));
+      
+    // Fetch users
+    axios.get('/api/users')
+      .then(res => setUsers(res.data.data || []))
       .catch(err => console.error(err));
   };
 
   useEffect(() => {
-    fetchOpcoes();
+    fetchData();
   }, []);
 
   const handleAddOpcao = (e) => {
     e.preventDefault();
     if (!novaOpcao.valor.trim()) return;
-    axios.post('http://localhost:3001/api/opcoes', novaOpcao)
+    axios.post('/api/opcoes', novaOpcao)
       .then(() => {
         setNovaOpcao({ ...novaOpcao, valor: '' });
-        fetchOpcoes();
+        fetchData();
       })
       .catch(err => alert('Erro ao adicionar opção'));
   };
 
   const handleDeleteOpcao = (id) => {
     if (!window.confirm('Excluir esta opção?')) return;
-    axios.delete(`http://localhost:3001/api/opcoes/${id}`)
-      .then(() => fetchOpcoes())
+    axios.delete(`/api/opcoes/${id}`)
+      .then(() => fetchData())
       .catch(err => alert('Erro ao excluir opção'));
+  };
+
+  const handleAddUser = (e) => {
+    e.preventDefault();
+    if (!novoUser.username.trim() || !novoUser.password.trim()) return;
+    axios.post('/api/users', novoUser)
+      .then(() => {
+        setNovoUser({ username: '', password: '', role: 'consultora' });
+        fetchData();
+        alert('Usuário criado com sucesso!');
+      })
+      .catch(err => alert('Erro ao criar usuário (talvez o nome já exista)'));
+  };
+
+  const handleDeleteUser = (id, username) => {
+    if (username === 'admin') {
+      alert('Não é possível excluir o administrador principal.');
+      return;
+    }
+    if (!window.confirm(`Excluir a conta de ${username}?`)) return;
+    axios.delete(`/api/users/${id}`)
+      .then(() => fetchData())
+      .catch(err => alert('Erro ao excluir usuário'));
   };
 
   return (
@@ -39,7 +72,7 @@ function Configuracoes() {
       <div className="header">
         <div>
           <h2>Configurações do Sistema</h2>
-          <p style={{ color: 'var(--text-muted)' }}>Gerencie as opções de seleção e preferências globais</p>
+          <p style={{ color: 'var(--text-muted)' }}>Gerencie as opções de seleção e acessos</p>
         </div>
       </div>
 
@@ -62,7 +95,6 @@ function Configuracoes() {
                 <option value="status">Status do Cliente</option>
                 <option value="segmento">Segmento (PME, etc)</option>
                 <option value="sdr">SDR</option>
-                <option value="consultora">Consultora</option>
               </select>
             </div>
             <div className="form-group" style={{ flex: 2 }}>
@@ -81,7 +113,7 @@ function Configuracoes() {
           </form>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-            {['produto', 'status', 'segmento', 'sdr', 'consultora'].map(cat => (
+            {['produto', 'status', 'segmento', 'sdr'].map(cat => (
               <div key={cat} style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px' }}>
                 <h4 style={{ textTransform: 'capitalize', marginBottom: '1rem', color: 'var(--primary)' }}>{cat}s</h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -102,12 +134,95 @@ function Configuracoes() {
           </div>
         </div>
 
-        <div className="glass-panel card" style={{ gridColumn: '1 / -1' }}>
+        <div className="glass-panel card" style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
           <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <User size={20} color="var(--primary)" />
-            Gerenciar Consultoras (Em breve)
+            Gerenciar Usuários (Consultoras & Admins)
           </h3>
-          <p style={{ color: 'var(--text-muted)' }}>A gestão de contas de vendedoras e alteração de senhas será ativada na versão 1.1.</p>
+          
+          <form onSubmit={handleAddUser} style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+              <label>Nome de Usuário (Login)</label>
+              <div style={{ position: 'relative' }}>
+                <User size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input 
+                  type="text" 
+                  required
+                  className="form-control" 
+                  placeholder="Nome da consultora"
+                  style={{ paddingLeft: '2.5rem' }}
+                  value={novoUser.username}
+                  onChange={e => setNovoUser({...novoUser, username: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
+              <label>Senha de Acesso</label>
+              <div style={{ position: 'relative' }}>
+                <Key size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input 
+                  type="password" 
+                  required
+                  className="form-control" 
+                  placeholder="Senha forte"
+                  style={{ paddingLeft: '2.5rem' }}
+                  value={novoUser.password}
+                  onChange={e => setNovoUser({...novoUser, password: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="form-group" style={{ flex: 1, minWidth: '150px' }}>
+              <label>Nível de Acesso</label>
+              <select 
+                className="form-control" 
+                value={novoUser.role}
+                onChange={e => setNovoUser({...novoUser, role: e.target.value})}
+              >
+                <option value="consultora">Consultora (Acesso Restrito)</option>
+                <option value="admin">Administrador (Acesso Total)</option>
+              </select>
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>
+              <Plus size={18} /> Criar Conta
+            </button>
+          </form>
+
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Usuário</th>
+                  <th>Nível (Role)</th>
+                  <th style={{ textAlign: 'right' }}>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(u => (
+                  <tr key={u.id}>
+                    <td>#{u.id}</td>
+                    <td style={{ fontWeight: 500 }}>{u.username}</td>
+                    <td>
+                      <span className={`status-badge ${u.role === 'admin' ? 'status-active' : 'status-pending'}`}>
+                        {u.role === 'admin' ? 'Admin' : 'Consultora'}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      {u.username !== 'admin' && (
+                        <button 
+                          onClick={() => handleDeleteUser(u.id, u.username)} 
+                          style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', color: 'var(--danger)', cursor: 'pointer', padding: '0.4rem 0.8rem', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                        >
+                          <Trash2 size={14} /> Excluir
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </div>
@@ -115,3 +230,4 @@ function Configuracoes() {
 }
 
 export default Configuracoes;
+

@@ -10,7 +10,7 @@ function Vendas() {
   const navigate = useNavigate();
 
   const fetchVendas = () => {
-    axios.get('http://localhost:3001/api/vendas')
+    axios.get('/api/vendas')
       .then(res => {
         setVendas(res.data.data || []);
         setLoading(false);
@@ -27,7 +27,7 @@ function Vendas() {
 
   const handleDelete = (id) => {
     if(window.confirm('Tem certeza que deseja excluir esta venda?')) {
-      axios.delete(`http://localhost:3001/api/vendas/${id}`)
+      axios.delete(`/api/vendas/${id}`)
         .then(() => fetchVendas())
         .catch(err => console.error(err));
     }

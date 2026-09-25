@@ -27,7 +27,7 @@ function EditarVenda() {
   });
 
   useEffect(() => {
-    axios.get(`http://localhost:3001/api/vendas/${id}`)
+    axios.get(`/api/vendas/${id}`)
       .then(res => {
         if (res.data.data) {
           setFormData(res.data.data);
@@ -39,11 +39,11 @@ function EditarVenda() {
         setLoading(false);
       });
 
-    axios.get(`http://localhost:3001/api/vendas/${id}/historico`)
+    axios.get(`/api/vendas/${id}/historico`)
       .then(res => setHistorico(res.data.data || []))
       .catch(err => console.error(err));
 
-    axios.get('http://localhost:3001/api/opcoes')
+    axios.get('/api/opcoes')
       .then(res => setOpcoes(res.data.data || []))
       .catch(err => console.error(err));
   }, [id]);
@@ -78,7 +78,7 @@ function EditarVenda() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`http://localhost:3001/api/vendas/${id}`, formData)
+    axios.put(`/api/vendas/${id}`, formData)
       .then(res => {
         alert('Venda atualizada com sucesso!');
         navigate('/vendas');

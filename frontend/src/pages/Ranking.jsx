@@ -8,7 +8,7 @@ function Ranking() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/vendas')
+    axios.get('/api/vendas')
       .then(res => {
         setVendas(res.data.data || []);
         setLoading(false);
