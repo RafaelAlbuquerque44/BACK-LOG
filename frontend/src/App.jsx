@@ -9,7 +9,10 @@ import Configuracoes from './pages/Configuracoes';
 import Login from './pages/Login';
 import Kanban from './pages/Kanban';
 import ConsultoraPainel from './pages/ConsultoraPainel';
-import { Columns, LayoutDashboard, ReceiptText, Users, Settings } from 'lucide-react';
+import Equipe from './pages/Equipe';
+import Relatorios from './pages/Relatorios';
+import Ranking from './pages/Ranking';
+import { Columns, LayoutDashboard, ReceiptText, Users, Settings, UserCog, BarChart3, Trophy } from 'lucide-react';
 
 function Sidebar() {
   const location = useLocation();
@@ -32,9 +35,21 @@ function Sidebar() {
           <Columns size={20} />
           Funil (Kanban)
         </Link>
+        <Link to="/relatorios" className={`nav-item ${location.pathname === '/relatorios' ? 'active' : ''}`}>
+          <BarChart3 size={20} />
+          Relatórios
+        </Link>
+        <Link to="/ranking" className={`nav-item ${location.pathname === '/ranking' ? 'active' : ''}`}>
+          <Trophy size={20} />
+          Metas & Ranking
+        </Link>
         <Link to="/clientes" className={`nav-item ${location.pathname === '/clientes' ? 'active' : ''}`}>
           <Users size={20} />
           Clientes
+        </Link>
+        <Link to="/equipe" className={`nav-item ${location.pathname === '/equipe' ? 'active' : ''}`}>
+          <UserCog size={20} />
+          Equipe / Acessos
         </Link>
         <Link to="/configuracoes" className={`nav-item ${location.pathname === '/configuracoes' ? 'active' : ''}`}>
           <Settings size={20} />
@@ -67,7 +82,10 @@ function App() {
                 <Route path="/vendas/nova" element={<NovaVenda />} />
                 <Route path="/vendas/editar/:id" element={<EditarVenda />} />
                 <Route path="/kanban" element={<Kanban />} />
+                <Route path="/relatorios" element={<Relatorios />} />
+                <Route path="/ranking" element={<Ranking />} />
                 <Route path="/clientes" element={<Clientes />} />
+                <Route path="/equipe" element={<Equipe />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </>
             ) : (

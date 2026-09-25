@@ -317,6 +317,44 @@ app.delete('/api/vendas/:id', (req, res) => {
   });
 });
 
+// --- USER MANAGEMENT ENDPOINTS ---
+app.get('/api/users', (req, res) => {
+  db.all('SELECT id, username, role FROM users', [], (err, rows) => {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ data: rows });
+  });
+});
+
+app.post('/api/users', (req, res) => {
+  const { username, password, role } = req.body;
+  db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, password, role], function(err) {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ id: this.lastID, username, role });
+  });
+});
+
+app.put('/api/users/:id', (req, res) => {
+  const { username, password, role } = req.body;
+  if (password) {
+    db.run('UPDATE users SET username = ?, password = ?, role = ? WHERE id = ?', [username, password, role, req.params.id], function(err) {
+      if (err) return res.status(400).json({ error: err.message });
+      res.json({ success: true });
+    });
+  } else {
+    db.run('UPDATE users SET username = ?, role = ? WHERE id = ?', [username, role, req.params.id], function(err) {
+      if (err) return res.status(400).json({ error: err.message });
+      res.json({ success: true });
+    });
+  }
+});
+
+app.delete('/api/users/:id', (req, res) => {
+  db.run('DELETE FROM users WHERE id = ?', [req.params.id], function(err) {
+    if (err) return res.status(400).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
 app.listen(port, () => {
   console.log(`Backend server running on http://localhost:${port}`);
 });
