@@ -12,9 +12,9 @@ import ConsultoraPainel from './pages/ConsultoraPainel';
 import Equipe from './pages/Equipe';
 import Relatorios from './pages/Relatorios';
 import Ranking from './pages/Ranking';
-import { Columns, LayoutDashboard, ReceiptText, Users, Settings, UserCog, BarChart3, Trophy } from 'lucide-react';
+import { Columns, LayoutDashboard, ReceiptText, Users, Settings, UserCog, BarChart3, Trophy, Sun, Moon } from 'lucide-react';
 
-function Sidebar() {
+function Sidebar({ theme, toggleTheme }) {
   const location = useLocation();
   
   return (
@@ -56,12 +56,41 @@ function Sidebar() {
           Configurações
         </Link>
       </nav>
+      <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+        <button 
+          onClick={toggleTheme}
+          style={{ 
+            display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', 
+            padding: '0.75rem 1rem', background: 'transparent', border: '1px solid var(--border-color)', 
+            borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer', transition: 'all 0.3s ease'
+          }}
+          onMouseOver={e => e.currentTarget.style.background = 'var(--nav-hover-bg)'}
+          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+        >
+          {theme === 'dark' ? <Sun size={20} color="var(--warning)" /> : <Moon size={20} color="var(--primary)" />}
+          {theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}
+        </button>
+      </div>
     </div>
   );
 }
 
 function App() {
   const [user, setUser] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   if (!user) {
     return <Login onLogin={setUser} />;
@@ -72,7 +101,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        {isAdmin ? <Sidebar /> : null}
+        {isAdmin ? <Sidebar theme={theme} toggleTheme={toggleTheme} /> : null}
         <main className="main-content" style={!isAdmin ? { padding: '1rem' } : {}}>
           <Routes>
             {isAdmin ? (

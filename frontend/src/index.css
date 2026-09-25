@@ -11,6 +11,20 @@
   --success: #34d399;
   --warning: #f59e0b;
   --danger: #ef4444;
+  --body-bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+  --sidebar-bg: rgba(15, 23, 42, 0.8);
+  --nav-hover-bg: rgba(16, 185, 129, 0.1);
+}
+
+body.light-mode {
+  --bg-dark: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: rgba(16, 185, 129, 0.2);
+  --body-bg: #f8fafc;
+  --sidebar-bg: #ffffff;
+  --nav-hover-bg: rgba(16, 185, 129, 0.15);
 }
 
 * {
@@ -21,10 +35,11 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+  background: var(--body-bg);
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 .glass-panel {
@@ -48,8 +63,9 @@ body {
   flex-direction: column;
   gap: 2rem;
   border-right: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--sidebar-bg);
   backdrop-filter: blur(10px);
+  transition: background 0.3s ease;
 }
 
 .sidebar h1 {
@@ -82,7 +98,7 @@ body {
 }
 
 .nav-item:hover, .nav-item.active {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--nav-hover-bg);
   color: var(--primary);
 }
 
